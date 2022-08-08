@@ -1,58 +1,46 @@
-﻿using System.Linq.Expressions;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.Linq.Expressions;
 
 namespace AspNetAutofac.API.Models;
 
 public class EfProductDal : IProductDal
 {
-    List<Product> products = new List<Product>
+    private readonly AppDbContext _appDbContext;
+
+    public EfProductDal(AppDbContext appDbContext)
     {
-        new Product()
-        {
-            Id = 1,
-            Name = "Product 1"
-        },
-        new Product()
-        {
-            Id = 2,
-            Name = "Product 2"
-        },
-        new Product()
-        {
-            Id = 3,
-            Name = "Product 3"
-        },
-        new Product()
-        {
-            Id = 4,
-            Name = "Product 4"
-        },
-        new Product()
-        {
-            Id = 5,
-            Name = "Product 5"
-        },
-        new Product()
-        {
-            Id = 6,
-            Name = "Product 6"
-        }
-    };
-
-
+        _appDbContext = appDbContext;
+    }
     public async Task<Product?> GetProductById(int productId)
     {
-        return await Task.FromResult(products.FirstOrDefault(p => p.Id == productId));
+        return await _appDbContext.Products.Where(p => p.Id == productId).FirstOrDefaultAsync();
     }
 
     public async Task<List<Product>> GetAllProductsAsync()
     {
-        return await Task.FromResult(products);
+        return await _appDbContext.Products.ToListAsync();
     }
 
-}
+    public async Task<bool> AddProduct(Product product)
+    {
+        EntityEntry<Product>? result = await _appDbContext.Products.AddAsync(product);
+        result.State = EntityState.Added;
+        return true;
+    }
 
-public class Product
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
+    public async Task<bool> UpdateProduct(int id, Product product)
+    {
+        var updateProduct = await _appDbContext.Products.FindAsync(id);
+        updateProduct.Id = product.Id;
+        updateProduct.Name = product.Name;
+        EntityEntry<Product>? result = _appDbContext.Products.Update(updateProduct);
+        result.State = EntityState.Modified;
+        return true;
+    }
+
+    public Task<int> SaveChangesAsync()
+    {
+      return  _appDbContext.SaveChangesAsync();
+    }
 }

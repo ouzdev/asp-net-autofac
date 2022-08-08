@@ -7,9 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
-builder.Host.ConfigureContainer<ContainerBuilder>(builder =>
+builder.Host.ConfigureContainer<ContainerBuilder>(b =>
 {
-    builder.RegisterModule(new DependencyResolverModule());
+    b.RegisterModule(new DependencyResolverModule(builder.Configuration));
 });
 
 

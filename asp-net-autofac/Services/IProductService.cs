@@ -1,11 +1,11 @@
-﻿namespace AspNetAutofac.API.Models;
+﻿using AspNetAutofac.API.Models;
 
-public interface IProductDal
+namespace AspNetAutofac.API.Services;
+
+public interface IProductService
 {
     Task<Product?> GetProductById(int productId);
     Task<List<Product>> GetAllProductsAsync();
     Task<bool> AddProduct(Product product);
     Task<bool> UpdateProduct(int id, Product product);
-    Task<int> SaveChangesAsync();
-
 }

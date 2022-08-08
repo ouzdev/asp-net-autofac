@@ -1,5 +1,6 @@
 using AspNetAutofac.API.Controllers;
 using AspNetAutofac.API.Models;
+using AspNetAutofac.API.Services;
 using AspNetAutofac.API.Test.Fixtures;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -58,6 +59,22 @@ namespace AspNetAutofac.API.Test.Systems.Controllers
 
         }
         [Fact]
+        public async Task Get_NotFound_ReturnStatusCode404()
+        {
+            // Arrange
+            var mockProductService = new Mock<IProductService>();
+            mockProductService.Setup(x => x.GetAllProductsAsync()).ReturnsAsync(new List<Product>());
+            var sut = new ProductsController(mockProductService.Object);
+
+            // Act
+            var result = (NotFoundObjectResult)await sut.GetAllProducts();
+
+            // Assert
+            //Check Status Code
+            result.StatusCode.Should().Be(404);
+
+        }
+        [Fact]
         public void Get_By_Id_OnSuccess_InvokesProductsServiceExactlyOnce()
         {
             // Arrange
@@ -83,7 +100,6 @@ namespace AspNetAutofac.API.Test.Systems.Controllers
             // Assert
             mockProductService.Verify(x => x.GetAllProductsAsync(), Times.Once);
         }
-
         [Fact]
         public async Task Get_OnSuccess_ReturnListOfProduct()
         {
@@ -102,5 +118,23 @@ namespace AspNetAutofac.API.Test.Systems.Controllers
             var objectResult = (OkObjectResult)result;
             objectResult.Value.Should().BeOfType<List<Product>>();
         }
+        [Fact]
+        public async Task Get_By_Id_OnSuccess_ReturnProduct()
+        {
+            //Arange
+
+            var mockProductService = new Mock<IProductService>();
+            mockProductService.Setup(x => x.GetProductById(1)).ReturnsAsync(ProductFixture.GetTestProduct());
+            var sut = new ProductsController(mockProductService.Object);
+
+            //Act
+
+            var result = await sut.GetAllProductById(1);
+
+            //Assert
+            result.Should().BeOfType<OkObjectResult>();
+            var objectResult = (OkObjectResult)result;
+            objectResult.Value.Should().BeOfType<Product>();
+        }        
     }
 }
